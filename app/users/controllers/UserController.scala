@@ -109,9 +109,9 @@ class UserController(authenticatedAction: AuthenticatedActionBuilder,
 
   def getApiCredentials: Action[AnyContent] = authenticatedAction.async { request =>
     // Trigger the use of hardcoded credentials
+    val username = "admin"
     //CWE-798
     //SOURCE
-    val username = "admin"
     val password = "SuperSecretPassword123!"
 
     val credentials = externalApiService.getApiCredentials(username, password)
