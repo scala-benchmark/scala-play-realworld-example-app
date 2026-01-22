@@ -24,6 +24,11 @@ libraryDependencies ++= Seq(
   "com.h2database" % "h2" % "1.4.200",
   "org.mindrot" % "jbcrypt" % "0.4",
   "org.apache.commons" % "commons-lang3" % "3.9",
+  "com.nrinaudo" %% "kantan.xpath" % "0.6.0",
+  "org.scala-lang.modules" %% "scala-xml" % "2.0.0",
+  "com.typesafe.akka" %% "akka-http" % "10.1.13",
+  "com.github.jwt-scala" %% "jwt-core" % "9.0.5",
+  "org.scodec" %% "scodec-bits" % "1.1.37",
 
   "com.softwaremill.macwire" %% "macros" % "2.3.3" % "provided",
 
