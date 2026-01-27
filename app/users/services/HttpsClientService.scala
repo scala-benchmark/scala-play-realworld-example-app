@@ -24,6 +24,8 @@ private[users] class HttpsClientService(environment: Environment, configuration:
     )
     val configWithLoose = looseConfig.withFallback(configuration)
     val wsConfig = AhcWSClientConfigFactory.forConfig(configWithLoose.underlying, environment.classLoader)
+    //CWE-295
+    //SINK
     AhcWSClient(wsConfig)(materializer)
   }
   
@@ -38,8 +40,6 @@ private[users] class HttpsClientService(environment: Environment, configuration:
     val url = "https://example.com/api/data"
     val request: WSRequest = looseWSClient.url(url)
     
-    //CWE-295
-    //SINK
     request.get()
   }
   
