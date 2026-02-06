@@ -16,8 +16,6 @@ private[users] class WeakJwtService {
     require(claim != null, "Claim cannot be null")
     require(key != null && key.nonEmpty, "Key cannot be null or empty")
     
-    //CWE-327
-    //SINK
     Jwt.encode(claim, key, JwtAlgorithm.HMD5)
   }
   
