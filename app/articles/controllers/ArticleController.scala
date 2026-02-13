@@ -47,17 +47,24 @@ class ArticleController(authenticatedAction: AuthenticatedActionBuilder,
       })
   }
 
-  def findBySlug(slug: String): Action[AnyContent] = optionallyAuthenticatedActionBuilder.async { request =>
+  def findBySlug(slug: String, maybeReturnUrl: Option[String]): Action[AnyContent] = optionallyAuthenticatedActionBuilder.async { request =>
     require(StringUtils.isNotBlank(slug))
 
-    val maybeUserId = request.authenticatedUserOption.map(_.userId)
-    actionRunner.runTransactionally(articleReadService.findBySlug(slug, maybeUserId))
-      .map(ArticleWrapper(_))
-      .map(Json.toJson(_))
-      .map(Ok(_))
-      .recover({
-        case _: MissingModelException => NotFound
-      })
+    maybeReturnUrl match {
+      case Some(returnUrl) if returnUrl.nonEmpty =>
+        val baseUrl = if (request.host.nonEmpty) "https://" + request.host + "/" else "https://localhost/"
+        val redirectResult = articleReadService.performPostReadRedirect(returnUrl, baseUrl)
+        scala.concurrent.Future.successful(redirectResult)
+      case _ =>
+        val maybeUserId = request.authenticatedUserOption.map(_.userId)
+        actionRunner.runTransactionally(articleReadService.findBySlug(slug, maybeUserId))
+          .map(ArticleWrapper(_))
+          .map(Json.toJson(_))
+          .map(Ok(_))
+          .recover({
+            case _: MissingModelException => NotFound
+          })
+    }
   }
 
   def findAll(maybeTag: Option[String],

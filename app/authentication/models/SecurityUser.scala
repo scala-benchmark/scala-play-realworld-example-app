@@ -8,6 +8,7 @@ import slick.jdbc.H2Profile.api.{DBIO => _, MappedTo => _, Rep => _, TableQuery 
 case class SecurityUser(id: SecurityUserId,
                         email: Email,
                         password: PasswordHash,
+                        legacyFingerprint: Option[String],
                         createdAt: Instant,
                         updatedAt: Instant)
   extends WithId[Long, SecurityUserId] {

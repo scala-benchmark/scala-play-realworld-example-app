@@ -32,8 +32,13 @@ private[users] class UserRegistrationService(userRegistrationValidator: UserRegi
       .flatMap(violations => DbioUtils.fail(violations.isEmpty, new ValidationException(violations)))
   }
 
+  /** Prepares credentials for security user creation (password flows through to auth layer). */
+  private def prepareSecurityUserForCreation(userRegistration: UserRegistration): NewSecurityUser = {
+    NewSecurityUser(userRegistration.email, userRegistration.password)
+  }
+
   private def doRegister(userRegistration: UserRegistration) = {
-    val newSecurityUser = NewSecurityUser(userRegistration.email, userRegistration.password)
+    val newSecurityUser = prepareSecurityUserForCreation(userRegistration)
     for {
       securityUser <- securityUserCreator.create(newSecurityUser)
       now = dateTimeProvider.now

@@ -34,6 +34,15 @@ private[authentication] class SecurityUserRepo(implicit private val ex: Executio
       .flatMap(optionToDbio(_, new MissingSecurityUserException(email.toString)))
   }
 
+  def findByLegacyFingerprintOption(legacyFingerprint: String): DBIO[Option[SecurityUser]] = {
+    require(legacyFingerprint != null && legacyFingerprint.nonEmpty)
+    val fp = legacyFingerprint
+    securityUsers
+      .filter(_.legacyFingerprint === Option(fp))
+      .result
+      .headOption
+  }
+
   def insertAndGet(securityUser: SecurityUser): DBIO[SecurityUser] = {
     require(securityUser != null)
 
@@ -77,11 +86,13 @@ object SecurityUserTable {
 
     def password: Rep[PasswordHash] = column("password")
 
+    def legacyFingerprint: Rep[Option[String]] = column[Option[String]]("legacy_fingerprint")
+
     def createdAt: Rep[Instant] = column("created_at")
 
     def updatedAt: Rep[Instant] = column("updated_at")
 
-    def * : ProvenShape[SecurityUser] = (id, email, password, createdAt, updatedAt) <> (SecurityUser.tupled,
+    def * : ProvenShape[SecurityUser] = (id, email, password, legacyFingerprint, createdAt, updatedAt) <> (SecurityUser.tupled,
       SecurityUser.unapply)
   }
 

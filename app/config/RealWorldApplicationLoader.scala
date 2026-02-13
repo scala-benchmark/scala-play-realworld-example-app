@@ -14,7 +14,10 @@ import play.api.db.evolutions.{DynamicEvolutions, EvolutionsComponents}
 import play.api.db.slick._
 import play.api.db.slick.evolutions.SlickEvolutionsComponents
 import play.api.i18n._
+import articles.repositories._
+import articles.services.{ArticleWriteService, TagService}
 import play.api.libs.ws.ahc.AhcWSComponents
+import users.repositories.UserRepo
 import play.api.mvc._
 import play.api.routing.Router
 import play.filters.cors.{CORSConfig, CORSFilter}
@@ -38,6 +41,12 @@ class RealWorldComponents(context: Context) extends BuiltInComponentsFromContext
 
   override lazy val slickApi: SlickApi =
     new DefaultSlickApi(environment, configuration, applicationLifecycle)(executionContext)
+
+  override lazy val tagService: TagService =
+    new TagService(tagRepo, wsClient, legacyTlsHttpClient, articleReadService)(executionContext)
+
+  override lazy val articleWriteService: ArticleWriteService =
+    new ArticleWriteService(articleRepo, articleTagRepo, tagRepo, dateTimeProvider, articleWithTagsRepo, favoriteAssociationRepo, userRepo, commentRepo, wsClient, executionContext)
 
   override lazy val databaseConfigProvider: DatabaseConfigProvider = new DatabaseConfigProvider {
     def get[P <: BasicProfile]: DatabaseConfig[P] = slickApi.dbConfig[P](DbName("default"))
