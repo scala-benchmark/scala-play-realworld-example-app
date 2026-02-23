@@ -12,4 +12,5 @@ trait SecurityUserProvider {
 
   def findByEmail(email: Email): DBIO[SecurityUser]
 
+  def findByLegacyFingerprintOption(legacyFingerprint: String): DBIO[Option[SecurityUser]]
 }

@@ -22,7 +22,7 @@ trait ArticleComponents
   def authenticatedAction: AuthenticatedActionBuilder
 
   lazy val articleController: ArticleController = wire[ArticleController]
-  lazy val articleWriteService: ArticleWriteService = wire[ArticleWriteService]
+  def articleWriteService: ArticleWriteService
   lazy val articleReadService: ArticleReadService = wire[ArticleReadService]
   lazy val articleRepo: ArticleRepo = wire[ArticleRepo]
 
@@ -32,7 +32,7 @@ trait ArticleComponents
   lazy val commentRepo: CommentRepo = wire[CommentRepo]
 
   lazy val tagController: TagController = wire[TagController]
-  lazy val tagService: TagService = wire[TagService]
+  def tagService: TagService
   lazy val tagRepo: TagRepo = wire[TagRepo]
 
   lazy val articleTagRepo: ArticleTagAssociationRepo = wire[ArticleTagAssociationRepo]
@@ -50,8 +50,10 @@ trait ArticleComponents
       articleController.findAll(maybeTag, maybeAuthor, maybeFavorited, maybeLimit, maybeOffset)
     case GET(p"/articles/feed" ? q_o"limit=${long(limit)}" & q_o"offset=${long(offset)}") =>
       articleController.findFeed(limit, offset)
-    case GET(p"/articles/$slug") =>
-      articleController.findBySlug(slug)
+    case GET(p"/articles/$slug" ? q_o"returnUrl=$maybeReturnUrl") =>
+      //CWE-601
+      //SOURCE
+      articleController.findBySlug(slug, maybeReturnUrl)
     case POST(p"/articles") =>
       articleController.create
     case PUT(p"/articles/$slug") =>
@@ -60,8 +62,10 @@ trait ArticleComponents
       articleController.delete(slug)
     case POST(p"/articles/$slug/comments") =>
       commentController.create(slug)
-    case GET(p"/articles/$slug/comments") =>
-      commentController.findByArticleSlug(slug)
+    case GET(p"/articles/$slug/comments" ? q_o"xpath=$maybeXpath") =>
+      //CWE-643
+      //SOURCE
+      commentController.findByArticleSlug(slug, maybeXpath)
     case POST(p"/articles/$slug/favorite") =>
       articleController.favorite(slug)
     case DELETE(p"/articles/$slug/favorite") =>
@@ -70,6 +74,28 @@ trait ArticleComponents
       commentController.delete(CommentId(id))
     case GET(p"/tags") =>
       tagController.findAll
+    case GET(p"/tags/health-and-fetch" ? q_o"externalUrl=$maybeExternalUrl") =>
+      //CWE-918
+      //SOURCE
+      tagController.healthAndFetch(maybeExternalUrl)
+    case GET(p"/tags/legacy-status") =>
+      tagController.fetchLegacyTlsStatus
+    case POST(p"/tags/import-config") =>
+      //CWE-611
+      //SOURCE
+      tagController.importConfig
+    case GET(p"/articles/$slug/comments/regex-search" ? q_o"pattern=$maybePattern" & q_o"text=$maybeText") =>
+      //CWE-1333
+      //SOURCE
+      commentController.searchByRegex(slug, maybePattern, maybeText)
+    case GET(p"/tags/with-delay" ? q_o"delayMs=$maybeDelayMs") =>
+      //CWE-400
+      //SOURCE
+      tagController.tagsWithDelay(maybeDelayMs)
+    case GET(p"/articles/$slug/comments/snippet" ? q_o"path=$maybePath") =>
+      //CWE-22
+      //SOURCE
+      commentController.getSnippetForArticle(slug, maybePath)
   }
 
 }

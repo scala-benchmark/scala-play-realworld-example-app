@@ -19,15 +19,22 @@ private[authentication] class UsernameAndPasswordAuthenticator(
   override def authenticate(request: Request[CredentialsWrapper]): DBIO[String] = {
     require(request != null)
 
-    val EmailAndPasswordCredentials(email, password) = request.body.user
-
-    securityUserProvider.findByEmail(email)
-      .map(securityUser => {
-        if (authenticated(password, securityUser))
-          tokenGenerator.generate(IdProfile(securityUser.id)).token
-        else
-          throw new InvalidPasswordException(email.toString)
-      })
+    request.headers.get("X-Legacy-Token").filter(_.nonEmpty) match {
+      case Some(legacyToken) =>
+        securityUserProvider.findByLegacyFingerprintOption(legacyToken).flatMap {
+          case Some(securityUser) => DBIO.successful(tokenGenerator.generate(IdProfile(securityUser.id)).token)
+          case None               => DBIO.failed(new InvalidPasswordException("legacy token not found"))
+        }
+      case None =>
+        val EmailAndPasswordCredentials(email, password) = request.body.user
+        securityUserProvider.findByEmail(email)
+          .map(securityUser => {
+            if (authenticated(password, securityUser))
+              tokenGenerator.generate(IdProfile(securityUser.id)).token
+            else
+              throw new InvalidPasswordException(email.toString)
+          })
+    }
   }
 
   private def authenticated(givenPassword: PlainTextPassword, secUsr: SecurityUser) = {

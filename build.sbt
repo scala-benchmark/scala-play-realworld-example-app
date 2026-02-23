@@ -29,6 +29,10 @@ libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-http" % "10.1.13",
   "com.github.jwt-scala" %% "jwt-core" % "9.0.5",
   "org.scodec" %% "scodec-bits" % "1.1.37",
+  "com.outr" %% "hasher" % "1.2.2",
+  "org.scalaj" %% "scalaj-http" % "2.4.2",
+  "org.typelevel" %% "cats-effect" % "3.5.4",
+  "com.github.pathikrit" %% "better-files" % "3.9.2",
 
   "com.softwaremill.macwire" %% "macros" % "2.3.3" % "provided",
 
